@@ -6,52 +6,43 @@ require('chai')
     .use(require('chai-as-promised'))
     .should()
 
-
 contract('Product',(accounts)=>{
-    const admin = accounts[0];
-    const farmerAddress = accounts[1];
-    const manufacturerAddress = accounts[2];
-    const distributerAddress = accounts[3];
-    const consumerAddress = accounts[4];
-    let productContract;
+    const manufacturerAddress = accounts[1];
+    const distributerAddress = accounts[2];
+    const consumerAddress = accounts[3];
     const productSerialNo = "123456";
+    let productContract;
+
     before(async () =>{
         productContract = await Product.deployed();
     })
 
+    it(`Adding Product with serialNo: ${productSerialNo}`, async ()=>{
+        await productContract.add(productSerialNo, "Product 1",[{ name: "Cocoa", isVerified: true }, { name: "Milk", isVerified: true }], "image_url", {from: manufacturerAddress});
+        const product = await productContract.get(productSerialNo);
+        assert.isTrue(product.isValue);
+        assert.equal(product.manufacturer, manufacturerAddress); 
+    })
+
     it(`Contract has no product with serialNo: ${productSerialNo}`, async ()=>{
-        const product = await productContract.getProduct(productSerialNo);
+        const product = await productContract.get(productSerialNo);
         assert.isFalse(product.isValue);
     })
 
-    it(`Adding Product with serialNo: ${productSerialNo}`, async ()=>{
-        await productContract.addProduct(productSerialNo, "Product 1",["Cocoa, Milk"], {from: manufacturerAddress});
-        const product = await productContract.getProduct(productSerialNo);
-        assert.isTrue(product.isValue);
-        assert(product.ownership, manufacturerAddress);
-    })
-
     describe("Product Ownership", async ()=>{
-        it("Only current owner can update ownership", async ()=>{
-            var err;
-            try{
-                await productContract.updateOwnership(distributerAddress, productSerialNo, {from: accounts[10]});
-            } catch(error){
-                err = error
-            }
-            assert.ok(err instanceof Error)
-        })
-
         it("Updating Ownership", async ()=>{
-            //transfering ownership of product from manufacturer to distributer
-            await productContract.updateOwnership(distributerAddress, productSerialNo, {from: manufacturerAddress});
-            let product = await productContract.getProduct(productSerialNo);
-            assert(product.ownership, distributerAddress);
+            // Add the product first
+            await productContract.add(productSerialNo, "Product 1",[{ name: "Cocoa", isVerified: true }, { name: "Milk", isVerified: true }], "image_url", {from: manufacturerAddress});
 
-            //transfering ownership of product from distributer to consumer
-            await productContract.updateOwnership(consumerAddress, productSerialNo, {from: distributerAddress});
-            product = await productContract.getProduct(productSerialNo);
-            assert(product.ownership, consumerAddress);
+            // Transfer ownership of product from manufacturer to distributor
+            await productContract.transfer(distributerAddress, productSerialNo, {from: manufacturerAddress});
+            let product = await productContract.get(productSerialNo);
+            assert.equal(product.currentOwner, distributerAddress); 
+
+            // Transfer ownership of product from distributor to consumer
+            await productContract.transfer(consumerAddress, productSerialNo, {from: distributerAddress});
+            product = await productContract.get(productSerialNo);
+            assert.equal(product.currentOwner, consumerAddress); 
         })
 
     })

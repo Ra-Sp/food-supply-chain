@@ -87,4 +87,15 @@ contract Manufacturer is Stakeholder {
     return true;
   }
 
+function updateRawProducts(string[] memory _names, supplier[] memory _suppliers) public returns (bool){
+    require(_names.length == _suppliers.length, "Manufacturer::updateRawProducts: Arrays length mismatch");
+    for (uint256 i = 0; i < _names.length; i++) {
+        addRawProduct(_names[i], _suppliers);
+    }
+    return true;
+}
+
+
+
+
 }

@@ -24,7 +24,7 @@ contract Stakeholder is Admin{
     string memory _role
   ) public virtual returns (bool) {
     require (_stakeholders[msg.sender].id ==  address(0), "Stakeholder::register: Stakeholder already registered");
-    _stakeholders[msg.sender] = stakeholder(msg.sender, _name, _location, _role, false);
+    _stakeholders[msg.sender] = stakeholder(msg.sender, _name, _location, _role, true);
     _stakeholderAddresses.push(msg.sender);
     return true;
   }

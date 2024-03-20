@@ -6,20 +6,17 @@ require('chai')
     .use(require('chai-as-promised'))
     .should()
 
-
-contract('Stakeholder',(accounts)=>{
-    const admin = accounts[0];
-    const stakeHolderAddress = accounts[3];
+contract('Stakeholder', (accounts) => {
+    const stakeHolderAddress = accounts[0]; // Assuming the first account is the stakeholder
     let stakeHolderContract;
 
-    before(async()=>{
+    before(async () => {
         stakeHolderContract = await StakeHolder.deployed();
     })
-    
-    it("Adding Stackholder", async () =>{
-        await stakeHolderContract.addStakeHolder("Distributer 1","Distributer",{from: stakeHolderAddress});
-        const stakeHolder = await stakeHolderContract.getStakeHolder(stakeHolderAddress);
-        assert(stakeHolder.isValue, true);
-    })
 
+    it("Adding Stakeholder", async () => {
+        await stakeHolderContract.register("Stakeholder 1", "Location 1", "Role 1", { from: stakeHolderAddress });
+        const stakeHolder = await stakeHolderContract.get(stakeHolderAddress);
+        assert.isTrue(stakeHolder.isVerified); // Assuming isVerified should be true after registration
+    })
 })
