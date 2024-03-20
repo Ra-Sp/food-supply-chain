@@ -1,13 +1,13 @@
 const { assert } = require('chai');
 
-const StakeHolder = artifacts.require('StakeHolder');
+const StakeHolder = artifacts.require('Stakeholder');
 
 require('chai')
     .use(require('chai-as-promised'))
     .should()
 
 
-contract('StakeHolder',(accounts)=>{
+contract('Stakeholder',(accounts)=>{
     const admin = accounts[0];
     const stakeHolderAddress = accounts[3];
     let stakeHolderContract;
