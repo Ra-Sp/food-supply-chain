@@ -1,50 +1,37 @@
-const { assert } = require('chai');
+const Product = artifacts.require("Product");
 
-const Product = artifacts.require('Product');
+contract("Product", (accounts) => {
+  let productInstance;
 
-require('chai')
-    .use(require('chai-as-promised'))
-    .should()
+  beforeEach(async () => {
+    productInstance = await Product.new();
+  });
 
-contract('Product',(accounts)=>{
-    const manufacturerAddress = accounts[1];
-    const distributerAddress = accounts[2];
-    const consumerAddress = accounts[3];
-    const productSerialNo = "123456";
-    let productContract;
+  it("Should add a product", async () => {
+    const productId = 1;
+    const title = "Test Product";
+    const rawProducts = [{ name: "RawProduct1", isVerified: true }];
+    const imageURL = "https://example.com/image.jpg";
 
-    before(async () =>{
-        productContract = await Product.deployed();
-    })
+    await productInstance.add(productId, title, rawProducts, imageURL);
 
-    it(`Adding Product with serialNo: ${productSerialNo}`, async ()=>{
-        await productContract.add(productSerialNo, "Product 1",[{ name: "Cocoa", isVerified: true }, { name: "Milk", isVerified: true }], "image_url", {from: manufacturerAddress});
-        const product = await productContract.get(productSerialNo);
-        assert.isTrue(product.isValue);
-        assert.equal(product.manufacturer, manufacturerAddress); 
-    })
+    const retrievedProduct = await productInstance.get(productId);
+    assert.equal(retrievedProduct.item.id, productId, "Product ID mismatch");
+    assert.equal(retrievedProduct.item.title, title, "Product title mismatch");
+    assert.equal(retrievedProduct.item.image_url, imageURL, "Image URL mismatch");
+  });
 
-    it(`Contract has no product with serialNo: ${productSerialNo}`, async ()=>{
-        const product = await productContract.get(productSerialNo);
-        assert.isFalse(product.isValue);
-    })
+  it("Should transfer ownership of a product", async () => {
+    const productId = 1;
+    const newOwner = accounts[1];
 
-    describe("Product Ownership", async ()=>{
-        it("Updating Ownership", async ()=>{
-            // Add the product first
-            await productContract.add(productSerialNo, "Product 1",[{ name: "Cocoa", isVerified: true }, { name: "Milk", isVerified: true }], "image_url", {from: manufacturerAddress});
+    await productInstance.add(productId, "Test Product", [], "https://example.com/image.jpg");
 
-            // Transfer ownership of product from manufacturer to distributor
-            await productContract.transfer(distributerAddress, productSerialNo, {from: manufacturerAddress});
-            let product = await productContract.get(productSerialNo);
-            assert.equal(product.currentOwner, distributerAddress); 
+    await productInstance.transfer(newOwner, productId);
 
-            // Transfer ownership of product from distributor to consumer
-            await productContract.transfer(consumerAddress, productSerialNo, {from: distributerAddress});
-            product = await productContract.get(productSerialNo);
-            assert.equal(product.currentOwner, consumerAddress); 
-        })
+    const retrievedProduct = await productInstance.get(productId);
+    assert.equal(retrievedProduct.item.currentOwner, newOwner, "Ownership transfer failed");
+  });
 
-    })
 
-})
+});

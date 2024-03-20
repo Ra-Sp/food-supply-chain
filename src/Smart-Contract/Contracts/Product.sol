@@ -75,18 +75,26 @@ contract Product {
     Transaction[] memory transactions, 
     Review[] memory reviews,
     RawProduct[] memory rawProducts
-  ){
+) {
     item = _items[_id];
-    transactions = new Transaction[](_itemTransactions[_id].length);
-    for (uint256 i = 0; i < _itemTransactions[_id].length; i++){
-      transactions[i] = _transactions[_itemTransactions[_id][i]];
+
+    if (_itemTransactions[_id].length > 0) {
+        transactions = new Transaction[](_itemTransactions[_id].length);
+        for (uint256 i = 0; i < _itemTransactions[_id].length; i++) {
+            transactions[i] = _transactions[_itemTransactions[_id][i]];
+        }
     }
-    reviews = new Review[](_itemReviews[_id].length);
-    for (uint256 i = 0; i < _itemReviews[_id].length; i++){
-      reviews[i] = _reviews[_itemReviews[_id][i]];
+
+    if (_itemReviews[_id].length > 0) {
+        reviews = new Review[](_itemReviews[_id].length);
+        for (uint256 i = 0; i < _itemReviews[_id].length; i++) {
+            reviews[i] = _reviews[_itemReviews[_id][i]];
+        }
     }
+
     rawProducts = _itemRawProducts[_id];
-  }
+}
+
 
   function transfer(address _to, uint256 _id) public returns (bool){
     require (_items[_id].currentOwner != address(0), "Product::transfer: Product does not exist");
